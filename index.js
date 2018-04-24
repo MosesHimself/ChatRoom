@@ -1,13 +1,18 @@
-//this creates an express application
+//this creates an express application object
 //https://expressjs.com/en/4x/api.html#app
-var app = require('express')();
+var express = require('express');
+var app = express();
 
 var http = require('http').Server(app);
 //socket io instance is created by
 //passing the http server instance
 var io = require('socket.io')(http);
 
+var clients = 0;
+var clientNames = {};
+
 //route definition. "GET / HTTP/1.1" as a requestLine
+//relative to the root directory
 app.get('/', function(req, res){
   //use req object to determine shizz from the request
   res.sendFile(__dirname + '/index.html');
@@ -15,10 +20,17 @@ app.get('/', function(req, res){
 
 //listening for connection to the http server
 io.on('connection', function(socket){
+  clients++;
   console.log('a user connected');
+
+  io.sockets.emit('newclientconnect',{ description: clients + ' clients connected!'})
+
   socket.on('disconnect', function(){
+    clients--;
     console.log('user disconnected');
+    io.sockets.emit('broadcast',{ description: clients + ' clients connected!'});
   });
+
   //receiveing a chat event
   socket.on('chat message', function(msg){
     console.log('message: ' + msg);
