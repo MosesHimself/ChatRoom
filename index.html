@@ -5,9 +5,9 @@
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font: 13px Helvetica, Arial; }
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #mForm { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      .mess { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      .messSend { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages li { padding: 5px 10px; }
       #messages li:nth-child(odd) { background: #eee; }
@@ -17,8 +17,9 @@
     <script>
       $(function () {
         var socket = io();
+        var loggedIn = false;
 
-        $('form').submit(function(){
+        $('#mForm').submit(function(){
           //this is creating the chat message event
           socket.emit('chat message', $('#m').val());
           //empty the message field on page
@@ -26,28 +27,53 @@
           return false;
         });
 
-        socket.on('chat message', function(msg){
-          $('#messages').append($('<li>').text(msg));
+        $('#loginForm').submit(function(){
+          socket.emit('login', { user: $('#user').val(), pass: $('#pass').val()});
+
         });
 
-        socket.on('broadcast',function(data) {
-          //document.body.innerHTML = '';
-          $('#count').val(data.description);
+        socket.on('confirmation', function(data)  {
+            if(data.val == "true")  {
+              alert("logged in b");
+              var x = document.getElementById("loginForm");
+              if (x.style.display === "none") {
+                  x.style.display = "block";
+              } else {
+                  x.style.display = "none";
+              }
+              loggedIn = true;
+            }
+            else {
+              alert("didnt log in fam");
+            }
         });
-        /*
+
+        socket.on('chat message', function(msg){
+          if(loggedIn)  {
+            $('#messages').append($('<li>').text(msg));
+          }
+        });
+
         socket.on('newclientconnect',function(data) {
-         //document.body.innerHTML = '';
-         $('#count').val(data.description);
+          //document.body.innerHTML = '';
+          //alert(data.description);
+          document.getElementById('count'). innerHTML = data.description;
         });
-        */
+
       });
     </script>
   </head>
   <body>
     <h2 id="count"></h2>
+
+    <form id="loginForm" method="GET">
+      Username:<input type="text" id="user" name="user"><br>
+      Password:<input type="password" id="pass" name="pass"><br>
+      <button>Login</button>
+    </form>
     <ul id="messages"></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
+    <form action="" id="mForm">
+      <input id="m" autocomplete="off" class="mess"/><button class="messSend">Send</button>
     </form>
   </body>
 </html>

@@ -23,12 +23,19 @@ io.on('connection', function(socket){
   clients++;
   console.log('a user connected');
 
-  io.sockets.emit('newclientconnect',{ description: clients + ' clients connected!'})
+  socket.on('login', function (data) {
+    console.log(data.user + " is trying to connect!");
+    socket.emit('confirmation',{val: "true"});
+  });
 
-  socket.on('disconnect', function(){
+  socket.emit('newclientconnect',{ description: 'Hey, welcome!'});
+
+  socket.broadcast.emit('newclientconnect',{ description: clients + ' clients connected!'})
+
+  socket.on('disconnect', function () {
     clients--;
-    console.log('user disconnected');
-    io.sockets.emit('broadcast',{ description: clients + ' clients connected!'});
+    console.log('a user disconnected');
+    socket.broadcast.emit('newclientconnect',{ description: clients + ' clients connected!'})
   });
 
   //receiveing a chat event
